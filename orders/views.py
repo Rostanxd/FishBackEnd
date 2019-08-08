@@ -9,8 +9,8 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 
-from orders.models import Warehouse, Employed, Order
-from orders.serializers import EmployedSerializer, WarehouseSerializer
+from orders.models import Warehouse, Employed, Order, ViewOrder
+from orders.serializers import EmployedSerializer, WarehouseSerializer, OrderSerializer, ViewOrderSerializer
 
 
 def index(request):
@@ -107,4 +107,6 @@ def warehouse_detail(request, id, data_id, enterprise_id):
 
 def order_list(request):
     if request.method == 'GET':
-        orders = Order.objects.all()
+        orders = ViewOrder.objects.filter(PED_FECHA__year=2019)
+        orders_serialized = ViewOrderSerializer(orders, many=True)
+        return JSONResponse(orders_serialized.data)

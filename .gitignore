@@ -3,3 +3,6 @@
 
 # Virtual environment
 venv/
+
+# Settings
+FishBackEnd/FishBackEnd/settings.py

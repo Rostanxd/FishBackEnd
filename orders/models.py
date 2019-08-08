@@ -42,3 +42,18 @@ class OrderDetail(models.Model):
     class Meta:
         unique_together = (('PED_ID', 'PED_SEC'),)
         db_table = 'TBDPED'
+
+
+class ViewOrder(models.Model):
+    order_id = models.IntegerField(name='PED_ID', db_column='PED_ID', primary_key=True)
+    date = models.DateTimeField(name='PED_FECHA', db_column='PED_FECHA')
+    state = models.CharField(name='PED_ST', db_column='PED_ST', max_length=5)
+    warehouse_id = models.CharField(name='PED_BOD', db_column='PED_BOD', max_length=10)
+    warehouse_name = models.CharField(name='NOM_BODEGA', db_column='NOM_BODEGA', max_length=200)
+    employed_id = models.CharField(name='PED_SOL', db_column='PED_SOL', max_length=10)
+    employed_name = models.CharField(name='NOM_SOLICITADO', db_column='NOM_SOLICITADO', max_length=101)
+    detail_sequence = models.IntegerField(name='PED_SEC', db_column='PED_SEC')
+
+    class Meta:
+        managed = False
+        db_table = 'VW_PEDIDOS'

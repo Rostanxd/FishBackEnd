@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from orders.models import Employed, Warehouse, Order, OrderDetail
+from orders.models import Employed, Warehouse, Order, OrderDetail, ViewOrder
 
 
 class EmployedSerializer(serializers.Serializer):
@@ -64,3 +64,20 @@ class OrderDetailSerializer(serializers.Serializer):
         instance.sequence = validate_data.get['PED_SEC', instance.sequence]
         instance.quantity = validate_data.get['PED_CANT', instance.quantity]
         instance.detail = validate_data.get['PED_DETALLE', instance.detail]
+
+
+class ViewOrderSerializer(serializers.Serializer):
+    PED_ID = serializers.IntegerField(read_only=True)
+    PED_FECHA = serializers.DateTimeField(read_only=True)
+    PED_ST = serializers.CharField(max_length=5, read_only=True)
+    PED_BOD = serializers.CharField(max_length=10, read_only=True)
+    NOM_BODEGA = serializers.CharField(max_length=200, read_only=True)
+    PED_SOL = serializers.CharField(max_length=10, read_only=True)
+    NOM_SOLICITADO = serializers.CharField(max_length=101, read_only=True)
+    PED_SEC = serializers.IntegerField(read_only=True)
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass

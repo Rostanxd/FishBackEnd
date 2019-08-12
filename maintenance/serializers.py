@@ -1,14 +1,25 @@
 from rest_framework import serializers
 
+from maintenance.models import User, Role, AccessByRol
 
-class UserSerializer(serializers.Serializer):
-    CODIGO = serializers.IntegerField(read_only=True)
-    USUARIO = serializers.CharField(max_length=10)
-    CLAVE = serializers.CharField(max_length=10)
-    NOMBRE = serializers.CharField(max_length=40)
 
-    def update(self, instance, validated_data):
-        pass
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['code', 'name']
 
-    def create(self, validated_data):
-        pass
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ['password']
+        depth = 1
+
+
+class AccessByRolSerializer(serializers.ModelSerializer):
+    role = RoleSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = AccessByRol
+        fields = ['role', 'program', 'execute', 'register', 'edit', 'delete', 'process']
+        depth = 1

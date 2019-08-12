@@ -1,21 +1,11 @@
 from django.http import HttpResponse
-from django.shortcuts import render
-
-
-import json
-
 
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 
-from orders.models import Warehouse, Employed, Order
-from orders.serializers import EmployedSerializer, WarehouseSerializer
-
-
-def index(request):
-    data = {'hola': 'mundo!'}
-    return HttpResponse(json.dumps(data))
+from orders.models import Warehouse, Employed, ViewOrder, Branch, UserBranch
+from orders.serializers import EmployedSerializer, WarehouseSerializer, BranchSerializer, UserBranchSerializer
 
 
 class JSONResponse(HttpResponse):
@@ -63,19 +53,11 @@ def employed_detail(request, pk):
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
-def warehouse_list(request):
+def warehouse_list(request, name):
     if request.method == 'GET':
-        warehouses = Warehouse.objects.all()
+        warehouses = Warehouse.objects.filter(data_id__contains='0', enterprise_id=1, name__istartswith=name)
         warehouses_serialized = WarehouseSerializer(warehouses, many=True)
         return JSONResponse(warehouses_serialized.data)
-
-    elif request.method == 'POST':
-        warehouse_data = JSONParser().parse(request)
-        warehouse_serialized = WarehouseSerializer(data=warehouse_data)
-        if warehouse_serialized.is_valid():
-            warehouse_serialized.save()
-            return JSONResponse(warehouse_serialized.data, status=status.HTTP_201_CREATED)
-        return JSONResponse(warehouse_serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def warehouse_detail(request, id, data_id, enterprise_id):
@@ -105,6 +87,50 @@ def warehouse_detail(request, id, data_id, enterprise_id):
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
-def order_list(request):
+def branch_list(request, name):
     if request.method == 'GET':
-        orders = Order.objects.all()
+        branches = Branch.objects.filter(name__istartswith=name)
+        branches_serialized = BranchSerializer(branches, many=True)
+        return JSONResponse(branches_serialized.data)
+
+
+def branches_by_user_list(request, user_code, branch_name):
+    if request.method == 'GET':
+        branches_by_user = UserBranch.objects.filter(user__code=user_code, branch__name__istartswith=branch_name,
+                                                     state='A')
+        branches_by_user_serialized = UserBranchSerializer(branches_by_user, many=True)
+        return JSONResponse(branches_by_user_serialized.data)
+
+
+def order_list(request, warehouse_id, branch_id, date_from, date_to):
+    print('hola!')
+    if request.method == 'GET':
+        response_data = []
+        vw_orders_all = ViewOrder.objects.filter(warehouse_id__icontains=warehouse_id, branch_id__icontains=branch_id,
+                                                 date__range=(date_from, date_to))
+
+        vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
+                                                'warehouse_name', 'branch_id', 'branch_name',
+                                                'applicant_id', 'applicant_name').distinct()
+
+        for header in vw_orders_header:
+            vw_orders_detail = vw_orders_all.filter(order_id=header['order_id'])
+
+            # Order detail to map
+            order_detail_data = []
+            for detail in vw_orders_detail:
+                order_detail_data.append(
+                    {'sequence': detail.detail_sequence, 'quantity': detail.detail_quantity,
+                     'detail': detail.detail_detail})
+
+            # Order header to map
+            order_data = {'order_id': header['order_id'], 'date': header['date'], 'observation': header['observation'],
+                          'state': header['state'], 'warehouse_id': header['warehouse_id'],
+                          'warehouse_name': header['warehouse_name'],
+                          'branch_id': header['branch_id'], 'branch_name': header['branch_name'],
+                          'applicant_id': header['applicant_id'],
+                          'applicant_name': header['applicant_name'], 'detail': order_detail_data}
+
+            response_data.append(order_data)
+
+        return JSONResponse(response_data)

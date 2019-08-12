@@ -102,8 +102,12 @@ def branches_by_user_list(request, user_code, branch_name):
         return JSONResponse(branches_by_user_serialized.data)
 
 
-def order_list(request, warehouse_id, branch_id, date_from, date_to):
-    print('hola!')
+def order_list(request, date_from, date_to, warehouse_id="", branch_id=""):
+    if warehouse_id is None:
+        warehouse_id = ''
+    if branch_id is None:
+        branch_id = ''
+
     if request.method == 'GET':
         response_data = []
         vw_orders_all = ViewOrder.objects.filter(warehouse_id__icontains=warehouse_id, branch_id__icontains=branch_id,

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views
 
@@ -11,8 +11,10 @@ urlpatterns = [
     path('warehouse/<id>/<data_id>/<enterprise_id>/', views.warehouse_detail, name='warehouse_detail'),
     path('branches/<name>/', views.branch_list, name='branch_list'),
     path('branches_by_user/<user_code>/<branch_name>/', views.branches_by_user_list, name='branches_by_user_list'),
-    path('list/<date_from>/<date_to>/', views.order_list, name='order_list'),
-    path('list/<warehouse_id>/<date_from>/<date_to>/', views.order_list, name='order_list'),
-    path('list/<branch_id>/<date_from>/<date_to>/', views.order_list, name='order_list'),
-    path('list/<warehouse_id>/<branch_id>/<date_from>/<date_to>/', views.order_list, name='order_list'),
+    re_path(
+        r'^list/(?P<date_from>[\w\-]+)/'
+        r'(?P<date_to>[\w\-]+)/'
+        r'(?:(?P<warehouse_id>[\w\-]+))?/'
+        r'(?:(?P<branch_id>[\w\-]+))?/$',
+        views.order_list, name='order_list'),
 ]

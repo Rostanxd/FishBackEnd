@@ -25,8 +25,12 @@ SECRET_KEY = 'otsk#w3iba$)=26zt$(6_7hofx3*-b%3@%c=poc5r_=lll)ry4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
 
+ALLOWED_HOSTS = [
+    '10.0.2.2',
+    '127.0.0.1',
+    'localhost'
+]
 
 # Application definition
 
@@ -85,7 +89,7 @@ DATABASES = {
         'NAME': 'PRUEBA',
         'USER': 'NEBOT',
         'PASSWORD': 'nebot',
-        'HOST': '192.168.1.124',
+        'HOST': 'PCWIN7PRO',
         'PORT': '1521'
     }
 }

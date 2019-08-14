@@ -55,7 +55,7 @@ def employed_detail(request, pk):
 
 def warehouse_list(request, name):
     if request.method == 'GET':
-        warehouses = Warehouse.objects.filter(data_id__contains='0', enterprise_id=1, name__istartswith=name)
+        warehouses = Warehouse.objects.filter(data_id__exact='O', enterprise_id__exact=1, name__icontains=name)
         warehouses_serialized = WarehouseSerializer(warehouses, many=True)
         return JSONResponse(warehouses_serialized.data)
 
@@ -89,8 +89,9 @@ def warehouse_detail(request, id, data_id, enterprise_id):
 
 def branch_list(request, name):
     if request.method == 'GET':
-        branches = Branch.objects.filter(name__istartswith=name)
+        branches = Branch.objects.filter(name__icontains=name)
         branches_serialized = BranchSerializer(branches, many=True)
+        print(branches_serialized.data)
         return JSONResponse(branches_serialized.data)
 
 
@@ -102,15 +103,20 @@ def branches_by_user_list(request, user_code, branch_name):
         return JSONResponse(branches_by_user_serialized.data)
 
 
-def order_list(request, date_from, date_to, warehouse_id="", branch_id=""):
+def order_list(request, date_from, date_to, warehouse_id="", branch_id="", state="", observation=""):
     if warehouse_id is None:
         warehouse_id = ''
     if branch_id is None:
         branch_id = ''
+    if state is None:
+        state = ''
+    if observation is None:
+        observation = ''
 
     if request.method == 'GET':
         response_data = []
         vw_orders_all = ViewOrder.objects.filter(warehouse_id__icontains=warehouse_id, branch_id__icontains=branch_id,
+                                                 state__icontains=state, observation__icontains=observation,
                                                  date__range=(date_from, date_to))
 
         vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',

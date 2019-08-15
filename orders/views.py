@@ -110,25 +110,33 @@ def branches_by_user_list(request, user_code, branch_name):
         return JSONResponse(branches_by_user_serialized.data)
 
 
-def order_list(request, date_from, date_to, warehouse_id="", branch_id="", state="", observation=""):
+def order_list(request, date_from, date_to, warehouse_id="", branch_id="", travel_id="", state="", observation="",
+               provider_name=""):
     if warehouse_id is None:
         warehouse_id = ''
     if branch_id is None:
         branch_id = ''
+    if travel_id is None:
+        travel_id = ''
     if state is None:
         state = ''
     if observation is None:
         observation = ''
+    if provider_name is None:
+        provider_name = ''
 
     if request.method == 'GET':
         response_data = []
         vw_orders_all = ViewOrder.objects.filter(warehouse_id__icontains=warehouse_id, branch_id__icontains=branch_id,
+                                                 travel_id__icontains=travel_id,
                                                  state__icontains=state, observation__icontains=observation,
-                                                 date__range=(date_from, date_to))
+                                                 # provider_name__icontains=provider_name,
+                                                 date__range=(date_from, date_to)).order_by('order_id')
 
         vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
-                                                'warehouse_name', 'branch_id', 'branch_name',
-                                                'applicant_id', 'applicant_name').distinct()
+                                                'warehouse_name', 'branch_id', 'branch_name', 'travel_id',
+                                                'travel_name',
+                                                'applicant_id', 'applicant_name', 'provider_name').distinct()
 
         for header in vw_orders_header:
             vw_orders_detail = vw_orders_all.filter(order_id=header['order_id'])
@@ -146,8 +154,9 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", state
                           'warehouse_name': header['warehouse_name'], 'travel_id': header['travel_id'],
                           'travel_name': header['travel_name'],
                           'branch_id': header['branch_id'], 'branch_name': header['branch_name'],
-                          'applicant_id': header['applicant_id'],
-                          'applicant_name': header['applicant_name'], 'detail': order_detail_data}
+                          'applicant_id': header['applicant_id'], 'applicant_name': header['applicant_name'],
+                          'provider_name': header['provider_name'],
+                          'detail': order_detail_data}
 
             response_data.append(order_data)
 

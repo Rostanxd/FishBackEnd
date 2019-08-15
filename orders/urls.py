@@ -17,7 +17,9 @@ urlpatterns = [
         r'(?P<date_to>[\w\-]+)/'
         r'(?:(?P<warehouse_id>[\w\-]+))?/'
         r'(?:(?P<branch_id>[\w\-]+))?/'
+        r'(?:(?P<travel_id>[\w\-]+))?/'
         r'(?:(?P<state>[\w\-]+))?/'
-        r'(?:(?P<observation>[\w\-]+))?/$',
+        r'(?:(?P<observation>[\w\-]+))?/'
+        r'(?:(?P<provider_name>[\w\-]+))?/$',
         views.order_list, name='order_list'),
 ]

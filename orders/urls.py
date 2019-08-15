@@ -9,6 +9,7 @@ urlpatterns = [
     path('employed/<pk>/', views.employed_detail, name='employed_detail'),
     path('warehouse/<id>/<data_id>/<enterprise_id>/', views.warehouse_detail, name='warehouse_detail'),
     path('warehouses/<path:name>/', views.warehouse_list, name='warehouse_list'),
+    path('travels/<path:name>/', views.travel_list, name='travel_list'),
     path('branches/<path:name>/', views.branch_list, name='branch_list'),
     path('branches_by_user/<user_code>/<path:branch_name>/', views.branches_by_user_list, name='branches_by_user_list'),
     re_path(

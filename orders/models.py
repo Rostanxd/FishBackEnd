@@ -71,6 +71,8 @@ class ViewOrder(models.Model):
     observation = models.CharField(max_length=1000, name='observation', db_column='PED_OBS')
     warehouse_id = models.CharField(name='warehouse_id', db_column='PED_BOD', max_length=10)
     warehouse_name = models.CharField(name='warehouse_name', db_column='NOM_BODEGA', max_length=200)
+    travel_id = models.CharField(name='travel_id', db_column='PED_VIAJE', max_length=10)
+    travel_name = models.CharField(name='travel_name', db_column='NOM_VIAJE', max_length=200)
     branch_id = models.CharField(name='branch_id', db_column='PED_SUC', max_length=5)
     branch_name = models.CharField(name='branch_name', db_column='nom_centrocosto', max_length=100)
     employed_id = models.CharField(name='applicant_id', db_column='PED_SOL', max_length=10)

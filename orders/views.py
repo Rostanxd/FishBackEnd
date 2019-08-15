@@ -60,6 +60,13 @@ def warehouse_list(request, name):
         return JSONResponse(warehouses_serialized.data)
 
 
+def travel_list(request, name):
+    if request.method == 'GET':
+        warehouses = Warehouse.objects.filter(data_id__exact='2', enterprise_id__exact=1, name__icontains=name)
+        warehouses_serialized = WarehouseSerializer(warehouses, many=True)
+        return JSONResponse(warehouses_serialized.data)
+
+
 def warehouse_detail(request, id, data_id, enterprise_id):
     try:
         warehouse_qs = Warehouse.objects.filter(CODIGO=id, DATA=data_id, EMPRESA=enterprise_id)
@@ -136,7 +143,8 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", state
             # Order header to map
             order_data = {'order_id': header['order_id'], 'date': header['date'], 'observation': header['observation'],
                           'state': header['state'], 'warehouse_id': header['warehouse_id'],
-                          'warehouse_name': header['warehouse_name'],
+                          'warehouse_name': header['warehouse_name'], 'travel_id': header['travel_id'],
+                          'travel_name': header['travel_name'],
                           'branch_id': header['branch_id'], 'branch_name': header['branch_name'],
                           'applicant_id': header['applicant_id'],
                           'applicant_name': header['applicant_name'], 'detail': order_detail_data}

@@ -78,6 +78,8 @@ class ViewOrder(models.Model):
     employed_id = models.CharField(name='applicant_id', db_column='PED_SOL', max_length=10)
     employed_name = models.CharField(name='applicant_name', db_column='NOM_SOLICITADO', max_length=101)
     provider_name = models.CharField(name='provider_name', db_column='nom_proveedor', max_length=500)
+    user_created = models.CharField(name='user_created', db_column='PED_LOGIN', max_length=20)
+    date_created = models.DateTimeField(name='date_created', db_column='PED_FECTRAN')
     detail_sequence = models.IntegerField(name='detail_sequence', db_column='PED_SEC')
     detail_quantity = models.IntegerField(name='detail_quantity', db_column='PED_CANT')
     detail_detail = models.CharField(max_length=1000, name='detail_detail', db_column='PED_DETALLE')

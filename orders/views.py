@@ -135,8 +135,8 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", trave
 
         vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
                                                 'warehouse_name', 'branch_id', 'branch_name', 'travel_id',
-                                                'travel_name',
-                                                'applicant_id', 'applicant_name', 'provider_name').distinct()
+                                                'travel_name', 'applicant_id', 'applicant_name', 'provider_name',
+                                                'user_created', 'date_created').distinct()
 
         for header in vw_orders_header:
             vw_orders_detail = vw_orders_all.filter(order_id=header['order_id'])
@@ -155,8 +155,8 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", trave
                           'travel_name': header['travel_name'],
                           'branch_id': header['branch_id'], 'branch_name': header['branch_name'],
                           'applicant_id': header['applicant_id'], 'applicant_name': header['applicant_name'],
-                          'provider_name': header['provider_name'],
-                          'detail': order_detail_data}
+                          'provider_name': header['provider_name'], 'user_created': header['user_created'],
+                          'date_created': header['date_created'], 'detail': order_detail_data}
 
             response_data.append(order_data)
 
@@ -172,8 +172,8 @@ def order_detail(request, order_id=""):
 
         vw_order_header = vw_order_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
                                               'warehouse_name', 'branch_id', 'branch_name', 'travel_id',
-                                              'travel_name',
-                                              'applicant_id', 'applicant_name', 'provider_name').distinct()[0]
+                                              'travel_name', 'applicant_id', 'applicant_name', 'provider_name',
+                                              'user_created', 'date_created').distinct()[0]
 
         vw_orders_detail = vw_order_all.filter(order_id=order_id)
 
@@ -198,6 +198,8 @@ def order_detail(request, order_id=""):
                       'applicant_id': vw_order_header['applicant_id'],
                       'applicant_name': vw_order_header['applicant_name'],
                       'provider_name': vw_order_header['provider_name'],
+                      'user_created': vw_order_header['user_created'],
+                      'date_created': vw_order_header['date_created'],
                       'detail': order_detail_data}
 
         return JSONResponse(order_data)

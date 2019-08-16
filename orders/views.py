@@ -130,7 +130,7 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", trave
         vw_orders_all = ViewOrder.objects.filter(warehouse_id__icontains=warehouse_id, branch_id__icontains=branch_id,
                                                  travel_id__icontains=travel_id,
                                                  state__icontains=state, observation__icontains=observation,
-                                                 # provider_name__icontains=provider_name,
+                                                 provider_name__icontains=provider_name,
                                                  date__range=(date_from, date_to)).order_by('order_id')
 
         vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
@@ -161,3 +161,45 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", trave
             response_data.append(order_data)
 
         return JSONResponse(response_data)
+
+
+def order_detail(request, order_id=""):
+    if request.method == 'GET':
+        vw_order_all = ViewOrder.objects.filter(order_id__exact=order_id)
+
+        if vw_order_all.__len__() == 0:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+        vw_order_header = vw_order_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
+                                              'warehouse_name', 'branch_id', 'branch_name', 'travel_id',
+                                              'travel_name',
+                                              'applicant_id', 'applicant_name', 'provider_name').distinct()[0]
+
+        vw_orders_detail = vw_order_all.filter(order_id=order_id)
+
+        # Order detail to map
+        order_detail_data = []
+        for detail in vw_orders_detail:
+            order_detail_data.append(
+                {'sequence': detail.detail_sequence, 'quantity': detail.detail_quantity,
+                 'detail': detail.detail_detail})
+
+        # Order header to map
+        order_data = {'order_id': vw_order_header['order_id'],
+                      'date': vw_order_header['date'],
+                      'observation': vw_order_header['observation'],
+                      'state': vw_order_header['state'],
+                      'warehouse_id': vw_order_header['warehouse_id'],
+                      'warehouse_name': vw_order_header['warehouse_name'],
+                      'travel_id': vw_order_header['travel_id'],
+                      'travel_name': vw_order_header['travel_name'],
+                      'branch_id': vw_order_header['branch_id'],
+                      'branch_name': vw_order_header['branch_name'],
+                      'applicant_id': vw_order_header['applicant_id'],
+                      'applicant_name': vw_order_header['applicant_name'],
+                      'provider_name': vw_order_header['provider_name'],
+                      'detail': order_detail_data}
+
+        return JSONResponse(order_data)
+    elif request.method == 'POST':
+        print(request.body)

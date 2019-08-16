@@ -22,4 +22,5 @@ urlpatterns = [
         r'(?:(?P<observation>[\w\-]+))?/'
         r'(?:(?P<provider_name>[\w\-]+))?/$',
         views.order_list, name='order_list'),
+    path('detail/<order_id>/', views.order_detail, name='order_detail'),
 ]

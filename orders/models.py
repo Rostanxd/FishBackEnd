@@ -46,21 +46,25 @@ class Order(models.Model):
     date = models.DateTimeField(name='date', db_column='PED_FECHA')
     state = models.CharField(max_length=5, name='state', db_column='PED_ST')
     observation = models.CharField(max_length=1000, name='observation', db_column='PED_OBS')
-    warehouse = models.OneToOneField(Warehouse, name='warehouse', db_column='PED_BOD', on_delete=models.CASCADE)
-    applicant = models.OneToOneField(Employed, name='applicant', db_column='PED_SOL', on_delete=models.CASCADE)
+    warehouse_id = models.CharField(name='warehouse_id', db_column='PED_BOD', max_length=10)
+    branch_id = models.CharField(name='branch_id', db_column='PED_SUC', max_length=10)
+    travel_id = models.CharField(name='travel_id', db_column='PED_VIAJE', max_length=10)
+    applicant_id = models.CharField(name='applicant_id', db_column='PED_SOL', max_length=10)
+    user_created = models.CharField(name='user_created', db_column='PED_LOGIN', max_length=20)
+    date_created = models.DateTimeField(name='date_created', db_column='PED_FECTRAN')
 
     class Meta:
         db_table = 'TBCPED'
 
 
 class OrderDetail(models.Model):
-    order = models.OneToOneField(Order, primary_key=True, on_delete=models.CASCADE, name='order', db_column='PED_ID')
+    order_id = models.IntegerField(primary_key=True, name='order_id', db_column='PED_ID')
     sequence = models.IntegerField(name='sequence', db_column='PED_SEC')
     quantity = models.IntegerField(name='quantity', db_column='PED_CANT')
     detail = models.CharField(max_length=1000, name='detail', db_column='PED_DETALLE')
 
     class Meta:
-        unique_together = (('order', 'sequence'),)
+        unique_together = (('order_id', 'sequence'),)
         db_table = 'TBDPED'
 
 

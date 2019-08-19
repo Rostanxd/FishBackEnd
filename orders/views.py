@@ -1,10 +1,14 @@
+import json
+
+from django.db.models.functions import Concat
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 
-from orders.models import Warehouse, Employed, ViewOrder, Branch, UserBranch
+from orders.models import Warehouse, Employed, ViewOrder, Branch, UserBranch, Order, OrderDetail
 from orders.serializers import EmployedSerializer, WarehouseSerializer, BranchSerializer, UserBranchSerializer
 
 
@@ -15,9 +19,13 @@ class JSONResponse(HttpResponse):
         super(JSONResponse, self).__init__(content, **kwargs)
 
 
-def employees_list(request):
+def employees_list(request, name=""):
+    if name is None:
+        name = ""
+
     if request.method == 'GET':
-        employees = Employed.objects.all()
+        employees = Employed.objects.annotate(full_name=Concat('last_name', 'first_name')).filter(
+            full_name__icontains=name)
         employees_serialized = EmployedSerializer(employees, many=True)
         return JSONResponse(employees_serialized.data)
 
@@ -98,7 +106,6 @@ def branch_list(request, name):
     if request.method == 'GET':
         branches = Branch.objects.filter(name__icontains=name)
         branches_serialized = BranchSerializer(branches, many=True)
-        print(branches_serialized.data)
         return JSONResponse(branches_serialized.data)
 
 
@@ -110,7 +117,8 @@ def branches_by_user_list(request, user_code, branch_name):
         return JSONResponse(branches_by_user_serialized.data)
 
 
-def order_list(request, date_from, date_to, warehouse_id="", branch_id="", travel_id="", state="", observation="",
+def order_list(request, date_from, date_to, warehouse_id="", branch_id="", travel_id="", employed_id="", state="",
+               observation="",
                provider_name=""):
     if warehouse_id is None:
         warehouse_id = ''
@@ -118,6 +126,8 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", trave
         branch_id = ''
     if travel_id is None:
         travel_id = ''
+    if employed_id is None:
+        employed_id = ''
     if state is None:
         state = ''
     if observation is None:
@@ -128,7 +138,7 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", trave
     if request.method == 'GET':
         response_data = []
         vw_orders_all = ViewOrder.objects.filter(warehouse_id__icontains=warehouse_id, branch_id__icontains=branch_id,
-                                                 travel_id__icontains=travel_id,
+                                                 travel_id__icontains=travel_id, applicant_id__icontains=employed_id,
                                                  state__icontains=state, observation__icontains=observation,
                                                  provider_name__icontains=provider_name,
                                                  date__range=(date_from, date_to)).order_by('order_id')
@@ -203,5 +213,32 @@ def order_detail(request, order_id=""):
                       'detail': order_detail_data}
 
         return JSONResponse(order_data)
-    elif request.method == 'POST':
-        print(request.body)
+
+
+@csrf_exempt
+def order_create(request):
+    # Getting data
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    content = json.loads(body['order_data'])
+
+    # Getting the new sequence
+    new_sequence = Order.objects.order_by("-id")[0].id
+    new_sequence += 1
+
+    # Creating the object to save
+    order = Order(id=new_sequence, date=content['date'], state='P', observation=content['observation'],
+                  warehouse_id=content['warehouse']['code'], branch_id=content['branch']['code'],
+                  travel_id=content['travel']['code'], applicant_id=content['applicant']['id'],
+                  user_created=content['userCreated'], date_created=content['dateCreated'])
+
+    order.save()
+
+    detail_sequence = 0
+    for d in content['detail']:
+        detail_sequence += 1
+        detail = OrderDetail(order_id=new_sequence, sequence=detail_sequence, quantity=d['quantity'],
+                             detail=d['detail'])
+        detail.save()
+
+    return JSONResponse({'id': new_sequence}, status=status.HTTP_200_OK)

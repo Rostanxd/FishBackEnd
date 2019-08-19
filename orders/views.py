@@ -242,3 +242,31 @@ def order_create(request):
         detail.save()
 
     return JSONResponse({'id': new_sequence}, status=status.HTTP_200_OK)
+
+
+def order_update(request):
+    # Getting data
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    content = json.loads(body['order_data'])
+
+    order_request = Order(id=content['id'], date=content['date'], state='P', observation=content['observation'],
+                  warehouse_id=content['warehouse']['code'], branch_id=content['branch']['code'],
+                  travel_id=content['travel']['code'], applicant_id=content['applicant']['id'],
+                  user_created=content['userCreated'], date_created=content['dateCreated'])
+
+    # Updating the order
+    order_request.save()
+
+    # Deleting the detail in the database
+    OrderDetail.objects.filter(order_id__exact=content['id']).delete()
+
+    # Creating the new detail
+    detail_sequence = 0
+    for d in content['detail']:
+        detail_sequence += 1
+        detail = OrderDetail(order_id=content['id'], sequence=detail_sequence, quantity=d['quantity'],
+                             detail=d['detail'])
+        detail.save()
+
+    return JSONResponse(status=status.HTTP_200_OK)

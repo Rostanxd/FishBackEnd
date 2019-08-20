@@ -13,6 +13,7 @@ urlpatterns = [
     re_path(
         r'^list/(?P<date_from>[\w\-]+)/'
         r'(?P<date_to>[\w\-]+)/'
+        r'(?:(?P<order_id>[\w\-]+))?/'
         r'(?:(?P<warehouse_id>[\w\-]+))?/'
         r'(?:(?P<branch_id>[\w\-]+))?/'
         r'(?:(?P<travel_id>[\w\-]+))?/'
@@ -23,4 +24,5 @@ urlpatterns = [
         views.order_list, name='order_list'),
     path('detail/<order_id>/', views.order_detail, name='order_detail'),
     path('create/', views.order_create, name='order_create'),
+    path('update/', views.order_update, name='order_update'),
 ]

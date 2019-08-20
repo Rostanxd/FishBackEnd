@@ -117,9 +117,10 @@ def branches_by_user_list(request, user_code, branch_name):
         return JSONResponse(branches_by_user_serialized.data)
 
 
-def order_list(request, date_from, date_to, warehouse_id="", branch_id="", travel_id="", employed_id="", state="",
-               observation="",
-               provider_name=""):
+def order_list(request, date_from, date_to, order_id="", warehouse_id="", branch_id="", travel_id="",
+               employed_id="", state="", observation="", provider_name=""):
+    if order_id is None:
+        order_id = ''
     if warehouse_id is None:
         warehouse_id = ''
     if branch_id is None:
@@ -137,7 +138,8 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", trave
 
     if request.method == 'GET':
         response_data = []
-        vw_orders_all = ViewOrder.objects.filter(warehouse_id__icontains=warehouse_id, branch_id__icontains=branch_id,
+        vw_orders_all = ViewOrder.objects.filter(order_id__gte=order_id, warehouse_id__icontains=warehouse_id,
+                                                 branch_id__icontains=branch_id,
                                                  travel_id__icontains=travel_id, applicant_id__icontains=employed_id,
                                                  state__icontains=state, observation__icontains=observation,
                                                  provider_name__icontains=provider_name,
@@ -146,7 +148,7 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", trave
         vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
                                                 'warehouse_name', 'branch_id', 'branch_name', 'travel_id',
                                                 'travel_name', 'applicant_id', 'applicant_name', 'provider_name',
-                                                'user_created', 'date_created').distinct()
+                                                'user_created', 'date_created', 'date_approved').distinct()
 
         for header in vw_orders_header:
             vw_orders_detail = vw_orders_all.filter(order_id=header['order_id'])
@@ -166,7 +168,8 @@ def order_list(request, date_from, date_to, warehouse_id="", branch_id="", trave
                           'branch_id': header['branch_id'], 'branch_name': header['branch_name'],
                           'applicant_id': header['applicant_id'], 'applicant_name': header['applicant_name'],
                           'provider_name': header['provider_name'], 'user_created': header['user_created'],
-                          'date_created': header['date_created'], 'detail': order_detail_data}
+                          'date_created': header['date_created'], 'date_approved': header['date_approved'],
+                          'detail': order_detail_data}
 
             response_data.append(order_data)
 
@@ -183,7 +186,7 @@ def order_detail(request, order_id=""):
         vw_order_header = vw_order_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
                                               'warehouse_name', 'branch_id', 'branch_name', 'travel_id',
                                               'travel_name', 'applicant_id', 'applicant_name', 'provider_name',
-                                              'user_created', 'date_created').distinct()[0]
+                                              'user_created', 'date_created', 'date_approved').distinct()[0]
 
         vw_orders_detail = vw_order_all.filter(order_id=order_id)
 
@@ -210,6 +213,7 @@ def order_detail(request, order_id=""):
                       'provider_name': vw_order_header['provider_name'],
                       'user_created': vw_order_header['user_created'],
                       'date_created': vw_order_header['date_created'],
+                      'date_approved': vw_order_header['date_approved'],
                       'detail': order_detail_data}
 
         return JSONResponse(order_data)
@@ -244,16 +248,25 @@ def order_create(request):
     return JSONResponse({'id': new_sequence}, status=status.HTTP_200_OK)
 
 
+@csrf_exempt
 def order_update(request):
     # Getting data
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     content = json.loads(body['order_data'])
 
-    order_request = Order(id=content['id'], date=content['date'], state='P', observation=content['observation'],
-                  warehouse_id=content['warehouse']['code'], branch_id=content['branch']['code'],
-                  travel_id=content['travel']['code'], applicant_id=content['applicant']['id'],
-                  user_created=content['userCreated'], date_created=content['dateCreated'])
+    print(content)
+
+    date_approved = None
+    if content['dateApproved'] != '':
+        date_approved = content['dateApproved']
+
+    order_request = Order(id=content['id'], date=content['date'], state=content['state'],
+                          observation=content['observation'],
+                          warehouse_id=content['warehouse']['code'], branch_id=content['branch']['code'],
+                          travel_id=content['travel']['code'], applicant_id=content['applicant']['id'],
+                          user_created=content['userCreated'], date_created=content['dateCreated'],
+                          date_approved=date_approved)
 
     # Updating the order
     order_request.save()
@@ -269,4 +282,4 @@ def order_update(request):
                              detail=d['detail'])
         detail.save()
 
-    return JSONResponse(status=status.HTTP_200_OK)
+    return JSONResponse(data={}, status=status.HTTP_200_OK)

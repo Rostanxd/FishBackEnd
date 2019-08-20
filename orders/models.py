@@ -52,6 +52,7 @@ class Order(models.Model):
     applicant_id = models.CharField(name='applicant_id', db_column='PED_SOL', max_length=10)
     user_created = models.CharField(name='user_created', db_column='PED_LOGIN', max_length=20)
     date_created = models.DateTimeField(name='date_created', db_column='PED_FECTRAN')
+    date_approved = models.DateTimeField(name='date_approved', db_column='PED_FECAPRO')
 
     class Meta:
         db_table = 'TBCPED'
@@ -84,6 +85,7 @@ class ViewOrder(models.Model):
     provider_name = models.CharField(name='provider_name', db_column='nom_proveedor', max_length=500)
     user_created = models.CharField(name='user_created', db_column='PED_LOGIN', max_length=20)
     date_created = models.DateTimeField(name='date_created', db_column='PED_FECTRAN')
+    date_approved = models.DateTimeField(name='date_approved', db_column='PED_FECAPRO')
     detail_sequence = models.IntegerField(name='detail_sequence', db_column='PED_SEC')
     detail_quantity = models.IntegerField(name='detail_quantity', db_column='PED_CANT')
     detail_detail = models.CharField(max_length=1000, name='detail_detail', db_column='PED_DETALLE')

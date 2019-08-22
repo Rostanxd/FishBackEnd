@@ -117,10 +117,21 @@ def branches_by_user_list(request, user_code, branch_name):
         return JSONResponse(branches_by_user_serialized.data)
 
 
-def order_list(request, date_from, date_to, order_id="", warehouse_id="", branch_id="", travel_id="",
-               employed_id="", state="", observation="", provider_name=""):
+def order_list(request):
+    # Adding the data to the variables
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    order_id = request.GET.get('order_id')
+    warehouse_id = request.GET.get('warehouse_id')
+    branch_id = request.GET.get('branch_id')
+    travel_id = request.GET.get('travel_id')
+    employed_id = request.GET.get('employed_id')
+    state = request.GET.get('state')
+    observation = request.GET.get('observation')
+    provider_name = request.GET.get('provider_name')
+
     if order_id is None:
-        order_id = ''
+        order_id = 0
     if warehouse_id is None:
         warehouse_id = ''
     if branch_id is None:

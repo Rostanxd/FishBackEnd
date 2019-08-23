@@ -50,10 +50,9 @@ def access_by_role(request, role_code):
 def user_authenticated(request, device_id):
     user_auth = UserDeviceAccess.objects.filter(device_id__icontains=device_id,
                                                 date_end__isnull=True)
-    if user_auth.count() != 0:
+    try:
         user = user_auth[0].user
         data = UserSerializer(user).data
-    else:
-        data = {"response": False}
-
+    except IndexError:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
     return JSONResponse(data, status=status.HTTP_200_OK)

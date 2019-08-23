@@ -42,3 +42,14 @@ class AccessByRol(models.Model):
     class Meta:
         unique_together = (('role', 'program'),)
         db_table = 'ROL_APP_ACCESOS'
+
+
+class UserDeviceAccess(models.Model):
+    date_ini = models.DateTimeField(primary_key=True, db_column='FEC_INICIO', name='date_ini')
+    device_id = models.CharField(max_length=40, db_column='DSP_CODIGO', name='device_id')
+    user = models.OneToOneField(User, max_length=10, on_delete=models.CASCADE, db_column='USR_CODIGO', name='user')
+    date_end = models.DateTimeField(db_column='FEC_FIN', name='date_end')
+
+    class Meta:
+        unique_together = (('date_ini', 'device_id'),)
+        db_table = 'USUARIOS_DISPOSIVOS_ACCESOS'

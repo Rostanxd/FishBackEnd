@@ -24,7 +24,7 @@ def login(request, user, password, device_id):
         return JSONResponse(user_serialized.data)
 
 
-def logOut(request, user_code, device_id):
+def log_out(request, user_code, device_id):
     try:
         user_auth_list = UserDeviceAccess.objects.filter(user__code__icontains=user_code,
                                                          device_id__icontains=device_id, date_end__isnull=True)
@@ -36,7 +36,7 @@ def logOut(request, user_code, device_id):
     return JSONResponse({"response": True}, status=status.HTTP_200_OK)
 
 
-def accessByRol(request, role_code):
+def access_by_role(request, role_code):
     try:
         access = AccessByRol.objects.filter(role__code=role_code)
     except AccessByRol.DoesNotExist:
@@ -47,12 +47,12 @@ def accessByRol(request, role_code):
         return JSONResponse(access_serialized.data)
 
 
-def userAuthenticated(request, user_code, device_id):
-    user_auth = UserDeviceAccess.objects.filter(user__code__icontains=user_code,
-                                                device_id__icontains=device_id,
+def user_authenticated(request, device_id):
+    user_auth = UserDeviceAccess.objects.filter(device_id__icontains=device_id,
                                                 date_end__isnull=True)
     if user_auth.count() != 0:
-        data = {"response": True}
+        user = user_auth[0].user
+        data = UserSerializer(user).data
     else:
         data = {"response": False}
 

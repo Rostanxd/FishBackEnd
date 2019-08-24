@@ -109,7 +109,12 @@ def branch_list(request, name):
         return JSONResponse(branches_serialized.data)
 
 
-def branches_by_user_list(request, user_code, branch_name):
+def branches_by_user_list(request, user_code):
+    branch_name = request.GET.get('branch_name')
+
+    if branch_name is None:
+        branch_name = ''
+
     if request.method == 'GET':
         branches_by_user = UserBranch.objects.filter(user__code=user_code, branch__name__istartswith=branch_name,
                                                      state='A')
@@ -266,8 +271,6 @@ def order_update(request):
     body = json.loads(body_unicode)
     content = json.loads(body['order_data'])
 
-    print(content)
-
     date_approved = None
     if content['dateApproved'] != '':
         date_approved = content['dateApproved']
@@ -289,8 +292,7 @@ def order_update(request):
     detail_sequence = 0
     for d in content['detail']:
         detail_sequence += 1
-        detail = OrderDetail(order_id=content['id'], sequence=detail_sequence, quantity=d['quantity'],
-                             detail=d['detail'])
-        detail.save()
+        OrderDetail.objects.create(order_id=content['id'], sequence=detail_sequence, quantity=d['quantity'],
+                                   detail=d['detail'])
 
     return JSONResponse(data={}, status=status.HTTP_200_OK)

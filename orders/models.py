@@ -61,7 +61,7 @@ class Order(models.Model):
 class OrderDetail(models.Model):
     order_id = models.IntegerField(primary_key=True, name='order_id', db_column='PED_ID')
     sequence = models.IntegerField(name='sequence', db_column='PED_SEC')
-    quantity = models.IntegerField(name='quantity', db_column='PED_CANT')
+    quantity = models.FloatField(name='quantity', db_column='PED_CANT')
     detail = models.CharField(max_length=1000, name='detail', db_column='PED_DETALLE')
 
     class Meta:
@@ -87,7 +87,7 @@ class ViewOrder(models.Model):
     date_created = models.DateTimeField(name='date_created', db_column='PED_FECTRAN')
     date_approved = models.DateTimeField(name='date_approved', db_column='PED_FECAPRO')
     detail_sequence = models.IntegerField(name='detail_sequence', db_column='PED_SEC')
-    detail_quantity = models.IntegerField(name='detail_quantity', db_column='PED_CANT')
+    detail_quantity = models.FloatField(name='detail_quantity', db_column='PED_CANT')
     detail_detail = models.CharField(max_length=1000, name='detail_detail', db_column='PED_DETALLE')
 
     class Meta:

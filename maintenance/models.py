@@ -4,6 +4,8 @@ from django.db import models
 class Program(models.Model):
     code = models.CharField(primary_key=True, max_length=3, name='code', db_column='CODIGO')
     name = models.CharField(max_length=40, name='name', db_column='NOMBRE')
+    path = models.CharField(max_length=40, name='path', db_column='RUTA')
+    icon = models.IntegerField(name='icon', db_column='ICONO')
 
     class Meta:
         db_table = 'PROGRAMAS_APP'
@@ -26,6 +28,14 @@ class User(models.Model):
 
     class Meta:
         db_table = 'USUARIOS'
+
+    def has_role(self):
+        has_role = False
+        try:
+            has_role = (self.role is not None)
+        except Role.DoesNotExist:
+            pass
+        return has_role and (self.role is not None)
 
 
 class AccessByRol(models.Model):

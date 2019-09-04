@@ -14,8 +14,9 @@ def login(request, user, password, device_id):
         user = users[0]
 
         #   Saving the register of the authentication in the device
-        user_device_access = UserDeviceAccess(date_ini=datetime.datetime.now(), user=user, device_id=device_id)
-        user_device_access.save()
+        if user.has_role():
+            user_device_access = UserDeviceAccess(date_ini=datetime.datetime.now(), user=user, device_id=device_id)
+            user_device_access.save()
     except User.DoesNotExist:
         return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 

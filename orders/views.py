@@ -161,7 +161,7 @@ def order_list(request):
                                                  provider_name__icontains=provider_name,
                                                  date__range=(date_from, date_to)).order_by('order_id')
 
-        vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
+        vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'commentary', 'state', 'warehouse_id',
                                                 'warehouse_name', 'branch_id', 'branch_name', 'travel_id',
                                                 'travel_name', 'applicant_id', 'applicant_name', 'provider_name',
                                                 'user_created', 'date_created', 'date_approved').distinct()
@@ -178,7 +178,7 @@ def order_list(request):
 
             # Order header to map
             order_data = {'order_id': header['order_id'], 'date': header['date'], 'observation': header['observation'],
-                          'state': header['state'], 'warehouse_id': header['warehouse_id'],
+                          'commentary': header['commentary'], 'state': header['state'], 'warehouse_id': header['warehouse_id'],
                           'warehouse_name': header['warehouse_name'], 'travel_id': header['travel_id'],
                           'travel_name': header['travel_name'],
                           'branch_id': header['branch_id'], 'branch_name': header['branch_name'],
@@ -199,7 +199,7 @@ def order_detail(request, order_id=""):
         if vw_order_all.__len__() == 0:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
-        vw_order_header = vw_order_all.values('order_id', 'date', 'observation', 'state', 'warehouse_id',
+        vw_order_header = vw_order_all.values('order_id', 'date', 'observation', 'commentary', 'state', 'warehouse_id',
                                               'warehouse_name', 'branch_id', 'branch_name', 'travel_id',
                                               'travel_name', 'applicant_id', 'applicant_name', 'provider_name',
                                               'user_created', 'date_created', 'date_approved').distinct()[0]
@@ -217,6 +217,7 @@ def order_detail(request, order_id=""):
         order_data = {'order_id': vw_order_header['order_id'],
                       'date': vw_order_header['date'],
                       'observation': vw_order_header['observation'],
+                      'commentary': vw_order_header['commentary'],
                       'state': vw_order_header['state'],
                       'warehouse_id': vw_order_header['warehouse_id'],
                       'warehouse_name': vw_order_header['warehouse_name'],
@@ -248,9 +249,10 @@ def order_create(request):
 
     # Creating the object to save
     order = Order(id=new_sequence, date=content['date'], state='P', observation=content['observation'],
-                  warehouse_id=content['warehouse']['code'], branch_id=content['branch']['code'],
-                  travel_id=content['travel']['code'], applicant_id=content['applicant']['id'],
-                  user_created=content['userCreated'], date_created=content['dateCreated'])
+                  commentary=content['commentary'], warehouse_id=content['warehouse']['code'],
+                  branch_id=content['branch']['code'], travel_id=content['travel']['code'],
+                  applicant_id=content['applicant']['id'], user_created=content['userCreated'],
+                  date_created=content['dateCreated'])
 
     order.save()
 
@@ -276,7 +278,7 @@ def order_update(request):
         date_approved = content['dateApproved']
 
     order_request = Order(id=content['id'], date=content['date'], state=content['state'],
-                          observation=content['observation'],
+                          observation=content['observation'], commentary=content['commentary'],
                           warehouse_id=content['warehouse']['code'], branch_id=content['branch']['code'],
                           travel_id=content['travel']['code'], applicant_id=content['applicant']['id'],
                           user_created=content['userCreated'], date_created=content['dateCreated'],

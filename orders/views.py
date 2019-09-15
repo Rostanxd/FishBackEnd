@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 
+from maintenance.models import User
 from orders.models import Warehouse, Employed, ViewOrder, Branch, UserBranch, Order, OrderDetail
 from orders.serializers import EmployedSerializer, WarehouseSerializer, BranchSerializer, UserBranchSerializer
 
@@ -19,9 +20,10 @@ class JSONResponse(HttpResponse):
         super(JSONResponse, self).__init__(content, **kwargs)
 
 
-def employees_list(request, name=""):
+def employees_list(request):
+    name = request.GET.get('name')
     if name is None:
-        name = ""
+        name = ''
 
     if request.method == 'GET':
         employees = Employed.objects.annotate(full_name=Concat('last_name', 'first_name')).filter(
@@ -61,14 +63,22 @@ def employed_detail(request, pk):
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
-def warehouse_list(request, name):
+def warehouse_list(request):
+    name = request.GET.get('name')
+    if name is None:
+        name = ''
+
     if request.method == 'GET':
         warehouses = Warehouse.objects.filter(data_id__exact='O', enterprise_id__exact=1, name__icontains=name)
         warehouses_serialized = WarehouseSerializer(warehouses, many=True)
         return JSONResponse(warehouses_serialized.data)
 
 
-def travel_list(request, name):
+def travel_list(request):
+    name = request.GET.get('name')
+    if name is None:
+        name = ''
+
     if request.method == 'GET':
         warehouses = Warehouse.objects.filter(data_id__exact='2', enterprise_id__exact=1, name__icontains=name)
         warehouses_serialized = WarehouseSerializer(warehouses, many=True)
@@ -102,7 +112,11 @@ def warehouse_detail(request, id, data_id, enterprise_id):
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
-def branch_list(request, name):
+def branch_list(request):
+    name = request.GET.get('name')
+    if name is None:
+        name = ''
+
     if request.method == 'GET':
         branches = Branch.objects.filter(name__icontains=name)
         branches_serialized = BranchSerializer(branches, many=True)
@@ -134,6 +148,7 @@ def order_list(request):
     state = request.GET.get('state')
     observation = request.GET.get('observation')
     provider_name = request.GET.get('provider_name')
+    user_code = request.GET.get('user_code')
 
     if order_id is None:
         order_id = 0
@@ -152,16 +167,49 @@ def order_list(request):
     if provider_name is None:
         provider_name = ''
 
+    # Validating user
+    user = User.objects.get(pk=user_code)
+    if not user.has_role():
+        return JSONResponse({'error': 'Usuario sin rol asignado'}, status=status.HTTP_401_UNAUTHORIZED)
+
     if request.method == 'GET':
         response_data = []
-        vw_orders_all = ViewOrder.objects.filter(order_id__gte=order_id, warehouse_id__icontains=warehouse_id,
-                                                 branch_id__icontains=branch_id,
-                                                 travel_id__icontains=travel_id, applicant_id__icontains=employed_id,
-                                                 state__icontains=state, observation__icontains=observation,
-                                                 provider_name__icontains=provider_name,
-                                                 date__range=(date_from, date_to)).order_by('order_id')
+        vw_orders_all = []
+        if user.role.code == '01':
+            vw_orders_all = ViewOrder.objects.filter(order_id__gte=order_id, warehouse_id__icontains=warehouse_id,
+                                                     branch_id__icontains=branch_id,
+                                                     travel_id__icontains=travel_id,
+                                                     applicant_id__icontains=employed_id,
+                                                     state__icontains=state, observation__icontains=observation,
+                                                     provider_name__icontains=provider_name,
+                                                     date__range=(date_from, date_to)).order_by('order_id')
 
-        vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'commentary', 'state', 'warehouse_id',
+        if user.role.code == '02':
+            user_branches_codes = list()
+            user_branches = UserBranch.objects.filter(user__code__exact=user.code, state='A')
+            for ub in user_branches:
+                user_branches_codes.append(ub.branch.code)
+
+            vw_orders_all = ViewOrder.objects.filter(order_id__gte=order_id, warehouse_id__icontains=warehouse_id,
+                                                     branch_id__in=user_branches_codes,
+                                                     travel_id__icontains=travel_id,
+                                                     applicant_id__icontains=employed_id,
+                                                     state__icontains=state, observation__icontains=observation,
+                                                     provider_name__icontains=provider_name,
+                                                     date__range=(date_from, date_to)).order_by('order_id')
+
+        if user.role.code == '03':
+            vw_orders_all = ViewOrder.objects.filter(order_id__gte=order_id, warehouse_id__icontains=warehouse_id,
+                                                     branch_id__icontains=branch_id,
+                                                     travel_id__icontains=travel_id,
+                                                     applicant_id__icontains=employed_id,
+                                                     state__icontains=state, observation__icontains=observation,
+                                                     provider_name__icontains=provider_name,
+                                                     user_created__icontains=user.user,
+                                                     date__range=(date_from, date_to)).order_by('order_id')
+
+        vw_orders_header = vw_orders_all.values('order_id', 'date', 'observation', 'commentary', 'state',
+                                                'warehouse_id',
                                                 'warehouse_name', 'branch_id', 'branch_name', 'travel_id',
                                                 'travel_name', 'applicant_id', 'applicant_name', 'provider_name',
                                                 'user_created', 'date_created', 'date_approved').distinct()
@@ -177,8 +225,10 @@ def order_list(request):
                      'detail': detail.detail_detail})
 
             # Order header to map
-            order_data = {'order_id': header['order_id'], 'date': header['date'], 'observation': header['observation'],
-                          'commentary': header['commentary'], 'state': header['state'], 'warehouse_id': header['warehouse_id'],
+            order_data = {'order_id': header['order_id'], 'date': header['date'],
+                          'observation': header['observation'],
+                          'commentary': header['commentary'], 'state': header['state'],
+                          'warehouse_id': header['warehouse_id'],
                           'warehouse_name': header['warehouse_name'], 'travel_id': header['travel_id'],
                           'travel_name': header['travel_name'],
                           'branch_id': header['branch_id'], 'branch_name': header['branch_name'],

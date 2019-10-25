@@ -89,7 +89,7 @@ DATABASES = {
         'NAME': 'PRUEBA',
         'USER': 'NEBOT',
         'PASSWORD': 'nebot',
-        'HOST': '192.168.1.124',
+        'HOST': '192.168.19.120',
         'PORT': '1521'
     }
 }

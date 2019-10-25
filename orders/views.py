@@ -298,7 +298,7 @@ def order_create(request):
     new_sequence += 1
 
     # Creating the object to save
-    order = Order(id=new_sequence, date=content['date'], state='P', observation=content['observation'],
+    order = Order(id=new_sequence, date=content['date'], state='A', observation=content['observation'],
                   commentary=content['commentary'], warehouse_id=content['warehouse']['code'],
                   branch_id=content['branch']['code'], travel_id=content['travel']['code'],
                   applicant_id=content['applicant']['id'], user_created=content['userCreated'],
@@ -309,9 +309,8 @@ def order_create(request):
     detail_sequence = 0
     for d in content['detail']:
         detail_sequence += 1
-        detail = OrderDetail(order_id=new_sequence, sequence=detail_sequence, quantity=d['quantity'],
-                             detail=d['detail'])
-        detail.save()
+        OrderDetail.objects.create(order_id=new_sequence, sequence=detail_sequence, quantity=d['quantity'],
+                                   detail=d['detail'])
 
     return JSONResponse({'id': new_sequence}, status=status.HTTP_200_OK)
 
